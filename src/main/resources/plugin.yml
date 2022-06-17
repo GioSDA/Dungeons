@@ -1,0 +1,12 @@
+name: Dungeons
+version: '${project.version}'
+main: io.github.giosda.dungeons.Dungeons
+api-version: 1.19
+load: STARTUP
+authors: [ GioSDA ]
+description: Spawn dungeons naturally in a Minecraft World.
+
+depend: [ WorldEdit ]
+
+commands:
+  dungeon:

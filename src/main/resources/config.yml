@@ -1,0 +1,5 @@
+#Percentage chance of spawning in a newly generated chunk
+percentage-chance: 1.5
+#Minimum and maximum y-levels of spawn
+min-y: 5
+max-y: 30
