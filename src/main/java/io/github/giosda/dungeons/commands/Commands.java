@@ -1,13 +1,14 @@
 package io.github.giosda.dungeons.commands;
 
-import com.sk89q.worldedit.IncompleteRegionException;
-import com.sk89q.worldedit.MaxChangedBlocksException;
-import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.bukkit.BukkitWorld;
 import com.sk89q.worldedit.bukkit.selections.Selection;
+import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardWriter;
+import com.sk89q.worldedit.extent.clipboard.io.SchematicWriter;
+import com.sk89q.worldedit.function.mask.ExistingBlockMask;
 import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
@@ -117,16 +118,21 @@ public class Commands implements CommandExecutor {
 			try {
 				File file = new File(Dungeons.dungeons.getDataFolder().getAbsolutePath() + "/dungeons/" + args[1] + ".schematic");
 
-				CuboidRegion region = new CuboidRegion(s.getNativeMinimumPoint(), s.getNativeMaximumPoint());
-				BlockArrayClipboard clipboard = new BlockArrayClipboard(region);
+				CuboidRegion cReg = new CuboidRegion(s.getNativeMinimumPoint(), s.getNativeMaximumPoint());
 
-				ClipboardWriter writer = ClipboardFormat.SCHEMATIC.getWriter(new FileOutputStream("/" + file));
-				writer.write(clipboard, Objects.requireNonNull(s.getRegionSelector().getRegion().getWorld()).getWorldData());
+				BlockArrayClipboard clipboard = new BlockArrayClipboard(cReg);
+				Extent source = WorldEdit.getInstance().getEditSessionFactory().getEditSession(s.getRegionSelector().getWorld(), -1);
+				ForwardExtentCopy copy = new ForwardExtentCopy(source, cReg, clipboard.getOrigin(), clipboard, s.getNativeMinimumPoint());
+				copy.setSourceMask(new ExistingBlockMask(source));
+				Operations.completeLegacy(copy);
+				ClipboardWriter writer = ClipboardFormat.SCHEMATIC.getWriter(new FileOutputStream(file));
+
+				writer.write(clipboard, s.getRegionSelector().getWorld().getWorldData());
 				writer.close();
 
 				sender.sendMessage("§a" + "Dungeon saved with name §e" + args[1] + "§a Reload for these changes to take effect.");
 				return true;
-			} catch (IOException | IncompleteRegionException e) {
+			} catch (IOException | MaxChangedBlocksException e) {
 				e.printStackTrace();
 				sender.sendMessage("§c" + "An error has occurred! Code: 101.");
 				return true;
